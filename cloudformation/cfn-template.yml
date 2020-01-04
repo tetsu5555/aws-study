@@ -2,23 +2,49 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: Test cfn Template
 
 Resources:
-  # VPCを定義
   cfnVpc:
     Type: 'AWS::EC2::VPC'
-    # VPCで設定できるパラメーター
     Properties:
       CidrBlock: '192.168.0.0/16'
       Tags:
         - Key: 'Name'
           Value: 'cfn-vpc'
-  # Subnetを定義
   cfnSubnet:
     Type: 'AWS::EC2::Subnet'
     Properties:
       CidrBlock: '192.168.1.0/24'
-      # このサブネットで起動されたインスタンスがパブリックIPを受け取るかどうか
       MapPublicIpOnLaunch: true
       Tags:
         - Key: 'Name'
           Value: 'cfn-subnet'
       VpcId: !Ref cfnVpc
+  cfnInternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+      - Key: 'Name'
+        Value: 'cfn-igw'
+  cfnAttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref cfnVpc
+      InternetGatewayId: !Ref cfnInternetGateway
+  cfnRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags:
+        - Key: 'Name'
+          Value: 'cfn-rt'
+      VpcId: !Ref cfnVpc
+  cfnRoute:
+    Type: AWS::EC2::Route
+    DependsOn: cfnInternetGateway
+    Properties:
+      RouteTableId: !Ref cfnRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref cfnInternetGateway
+  cfnSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref cfnSubnet
+      RouteTableId: !Ref cfnRouteTable
