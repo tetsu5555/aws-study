@@ -2,6 +2,7 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: Test cfn Template
 
 Resources:
+  # VPCを定義
   cfnVpc:
     Type: 'AWS::EC2::VPC'
     # VPCで設定できるパラメーター
@@ -10,3 +11,14 @@ Resources:
       Tags:
         - Key: 'Name'
           Value: 'cfn-vpc'
+  # Subnetを定義
+  cfnSubnet:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      CidrBlock: '192.168.1.0/24'
+      # このサブネットで起動されたインスタンスがパブリックIPを受け取るかどうか
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: 'Name'
+          Value: 'cfn-subnet'
+      VpcId: !Ref cfnVpc
